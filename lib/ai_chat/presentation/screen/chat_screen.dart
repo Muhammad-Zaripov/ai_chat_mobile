@@ -1,3 +1,4 @@
+import 'package:ai_chat/ai_chat/data/model/chat_summary.dart';
 import 'package:ai_chat/ai_chat/presentation/state/chat_screen_state.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/animated_message_bubble.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/assistant_loading_bubble.dart';
@@ -25,31 +26,54 @@ class _ChatScreenState extends ChatScreenState {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: colors.background,
-        appBar: ChatAppBar(colors: colors),
+        appBar: ChatAppBar(colors: colors, onNewChat: startNewChat),
+        drawer: _ChatHistoryDrawer(
+          colors: colors,
+          chats: chats,
+          selectedChatId: selectedChatId,
+          isLoading: isLoadingChats,
+          onRefresh: loadChats,
+          onNewChat: () {
+            Navigator.of(context).pop();
+            startNewChat();
+          },
+          onSelectChat: (chatId) {
+            Navigator.of(context).pop();
+            selectChat(chatId);
+          },
+        ),
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 260),
-          child: ListView.builder(
-            key: const ValueKey('message-list'),
-            controller: scrollController,
-            padding: const EdgeInsets.all(16),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            itemCount: messages.length + (isSendingMessage ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index == messages.length) {
-                return AssistantLoadingBubble(
-                  key: const ValueKey('assistant-loading'),
-                  colors: colors,
-                );
-              }
+          child: isLoadingMessages
+              ? Center(
+                  key: const ValueKey('message-loading'),
+                  child: CircularProgressIndicator(color: colors.primary),
+                )
+              : messages.isEmpty && !isSendingMessage
+              ? _EmptyChat(colors: colors)
+              : ListView.builder(
+                  key: const ValueKey('message-list'),
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  itemCount: messages.length + (isSendingMessage ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == messages.length) {
+                      return AssistantLoadingBubble(
+                        key: const ValueKey('assistant-loading'),
+                        colors: colors,
+                      );
+                    }
 
-              final message = messages[index];
-              return AnimatedMessageBubble(
-                key: ValueKey(message.id),
-                message: message,
-                colors: colors,
-              );
-            },
-          ),
+                    final message = messages[index];
+                    return AnimatedMessageBubble(
+                      key: ValueKey(message.id),
+                      message: message,
+                      colors: colors,
+                    );
+                  },
+                ),
         ),
         bottomNavigationBar: AnimatedPadding(
           duration: const Duration(milliseconds: 200),
@@ -60,6 +84,160 @@ class _ChatScreenState extends ChatScreenState {
             controller: messageController,
             canSend: canSend,
             onSend: sendMessage,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatHistoryDrawer extends StatelessWidget {
+  const _ChatHistoryDrawer({
+    required this.colors,
+    required this.chats,
+    required this.selectedChatId,
+    required this.isLoading,
+    required this.onRefresh,
+    required this.onNewChat,
+    required this.onSelectChat,
+  });
+
+  final ChatColors colors;
+  final List<ChatSummary> chats;
+  final String? selectedChatId;
+  final bool isLoading;
+  final VoidCallback onRefresh;
+  final VoidCallback onNewChat;
+  final ValueChanged<String> onSelectChat;
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      backgroundColor: colors.surface,
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Chatlar',
+                      style: TextStyle(
+                        color: colors.title,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Yangilash',
+                    onPressed: onRefresh,
+                    icon: Icon(Icons.refresh, color: colors.icon),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onNewChat,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Yangi chat'),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (isLoading)
+              LinearProgressIndicator(
+                minHeight: 2,
+                color: colors.primary,
+                backgroundColor: colors.input,
+              ),
+            Expanded(
+              child: chats.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Hali chat yo‘q',
+                        style: TextStyle(color: colors.mutedText),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(8),
+                      itemCount: chats.length,
+                      separatorBuilder: (_, _) => const SizedBox(height: 4),
+                      itemBuilder: (context, index) {
+                        final chat = chats[index];
+                        final isSelected = chat.id == selectedChatId;
+                        return ListTile(
+                          selected: isSelected,
+                          selectedTileColor: colors.input,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          leading: Icon(
+                            Icons.chat_bubble_outline,
+                            color: isSelected ? colors.primary : colors.icon,
+                          ),
+                          title: Text(
+                            chat.displayTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colors.text,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ),
+                          ),
+                          subtitle: Text(
+                            _formatChatDate(chat.updatedAt),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: colors.mutedText),
+                          ),
+                          onTap: () => onSelectChat(chat.id),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatChatDate(DateTime date) {
+    final local = date.toLocal();
+    final month = local.month.toString().padLeft(2, '0');
+    final day = local.day.toString().padLeft(2, '0');
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '$day.$month $hour:$minute';
+  }
+}
+
+class _EmptyChat extends StatelessWidget {
+  const _EmptyChat({required this.colors});
+
+  final ChatColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      key: const ValueKey('empty-chat'),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Text(
+          'Xabar yozing yoki chap menyudan eski chatni tanlang',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: colors.mutedText,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),

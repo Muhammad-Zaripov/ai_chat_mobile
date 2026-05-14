@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'package:ai_chat/ai_chat/data/model/backend_chat_message.dart';
+import 'package:ai_chat/ai_chat/data/model/chat_summary.dart';
 import 'package:ai_chat/ai_chat/data/model/create_chat_response.dart';
 import 'package:ai_chat/ai_chat/data/model/send_chat_message_response.dart';
+import 'package:ai_chat/ai_chat/domain/models/chat_message.dart';
 import 'package:ai_chat/core/network/app_dio.dart';
 import 'package:dio/dio.dart';
 
@@ -19,6 +22,63 @@ class AiChatBackendService {
 
   final Dio _dio;
   String? _chatId;
+
+  String? get currentChatId => _chatId;
+
+  set currentChatId(String? value) {
+    final trimmed = value?.trim();
+    _chatId = trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
+  Future<List<ChatSummary>> listChats() async {
+    final response = await _get(_joinUrl(_defaultBaseUrl, '/v1/chats'));
+    final json = response.data;
+    if (json is! Map<String, Object?>) {
+      throw const AiChatBackendException('Chat list response JSON object emas');
+    }
+
+    final items = json['items'];
+    if (items is! List) return const <ChatSummary>[];
+
+    return items
+        .whereType<Map>()
+        .map((item) => ChatSummary.fromJson(item.cast<String, Object?>()))
+        .where((chat) => chat.id.trim().isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<List<ChatMessage>> listMessages(String chatId) async {
+    final id = chatId.trim();
+    if (id.isEmpty) return const <ChatMessage>[];
+
+    final response = await _get(
+      _joinUrl(_defaultBaseUrl, '/v1/chats/$id/messages'),
+    );
+    final json = response.data;
+    if (json is! Map<String, Object?>) {
+      throw const AiChatBackendException(
+        'Messages list response JSON object emas',
+      );
+    }
+
+    final items = json['items'];
+    if (items is! List) return const <ChatMessage>[];
+
+    return items
+        .whereType<Map>()
+        .map(
+          (item) => BackendChatMessage.fromJson(item.cast<String, Object?>()),
+        )
+        .where((message) => message.content.trim().isNotEmpty)
+        .map((message) => message.toDomain())
+        .toList(growable: false);
+  }
+
+  Future<String> createChat() async {
+    final chatId = await _createChat();
+    _chatId = chatId;
+    return chatId;
+  }
 
   Future<String> sendMessage({required String text}) async {
     final chatId = _chatId ?? await _createChat();
@@ -74,6 +134,14 @@ class AiChatBackendService {
         data: data,
         options: Options(headers: _headers),
       );
+    } on DioException catch (error) {
+      throw AiChatBackendException(_formatDioError(error));
+    }
+  }
+
+  Future<Response<Object?>> _get(String url) async {
+    try {
+      return await _dio.get<Object?>(url, options: Options(headers: _headers));
     } on DioException catch (error) {
       throw AiChatBackendException(_formatDioError(error));
     }
