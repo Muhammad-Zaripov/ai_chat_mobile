@@ -1,0 +1,24 @@
+name: ai_chat
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  dio: ^5.9.0
+  file_picker: ^10.3.7
+  image_picker: ^1.2.2
+  permission_handler: ^12.0.1
+  thunder: ^0.2.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
