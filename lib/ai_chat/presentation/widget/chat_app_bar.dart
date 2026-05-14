@@ -2,10 +2,18 @@ import 'package:ai_chat/ai_chat/presentation/widget/chat_colors.dart';
 import 'package:flutter/material.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const ChatAppBar({super.key, required this.colors, required this.onNewChat});
+  const ChatAppBar({
+    super.key,
+    required this.colors,
+    required this.onNewChat,
+    this.selectedChatId,
+    required this.onDeleteChat,
+  });
 
   final ChatColors colors;
   final VoidCallback onNewChat;
+  final String? selectedChatId;
+  final ValueChanged<String> onDeleteChat;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -20,6 +28,12 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: colors.title,
       title: const Text('AI CHAT'),
       actions: [
+        if (selectedChatId != null)
+          IconButton(
+            tooltip: 'Chatni o‘chirish',
+            onPressed: () => onDeleteChat(selectedChatId!),
+            icon: const Icon(Icons.delete_outline, color: Colors.black),
+          ),
         IconButton(
           tooltip: 'Yangi chat',
           onPressed: onNewChat,

@@ -26,7 +26,17 @@ class _ChatScreenState extends ChatScreenState {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: colors.background,
-        appBar: ChatAppBar(colors: colors, onNewChat: startNewChat),
+        appBar: ChatAppBar(
+          colors: colors,
+          onNewChat: startNewChat,
+          selectedChatId: selectedChatId,
+          onDeleteChat: (id) => _confirmDelete(
+            context,
+            title: 'Chatni o‘chirish',
+            content: 'Haqiqatan ham joriy chatni o‘chirmoqchimisiz?',
+            onConfirm: () => deleteChat(id),
+          ),
+        ),
         drawer: _ChatHistoryDrawer(
           colors: colors,
           chats: chats,
@@ -41,6 +51,21 @@ class _ChatScreenState extends ChatScreenState {
             Navigator.of(context).pop();
             selectChat(chatId);
           },
+          onDeleteAll: () {
+            Navigator.of(context).pop();
+            _confirmDelete(
+              context,
+              title: 'Barcha chatlarni o‘chirish',
+              content: 'Haqiqatan ham barcha chatlarni o‘chirmoqchimisiz? Bu amalni ortga qaytarib bo‘lmaydi.',
+              onConfirm: () => deleteAllChats(),
+            );
+          },
+          onDeleteChat: (id) => _confirmDelete(
+            context,
+            title: 'Chatni o‘chirish',
+            content: 'Haqiqatan ham bu chatni o‘chirmoqchimisiz?',
+            onConfirm: () => deleteChat(id),
+          ),
         ),
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 260),
@@ -89,6 +114,34 @@ class _ChatScreenState extends ChatScreenState {
       ),
     );
   }
+
+  void _confirmDelete(
+    BuildContext context, {
+    required String title,
+    required String content,
+    required VoidCallback onConfirm,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Bekor qilish'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              onConfirm();
+            },
+            child: const Text('O‘chirish', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ChatHistoryDrawer extends StatelessWidget {
@@ -100,6 +153,8 @@ class _ChatHistoryDrawer extends StatelessWidget {
     required this.onRefresh,
     required this.onNewChat,
     required this.onSelectChat,
+    required this.onDeleteAll,
+    required this.onDeleteChat,
   });
 
   final ChatColors colors;
@@ -109,6 +164,8 @@ class _ChatHistoryDrawer extends StatelessWidget {
   final VoidCallback onRefresh;
   final VoidCallback onNewChat;
   final ValueChanged<String> onSelectChat;
+  final VoidCallback onDeleteAll;
+  final ValueChanged<String> onDeleteChat;
 
   @override
   Widget build(BuildContext context) {
@@ -199,11 +256,28 @@ class _ChatHistoryDrawer extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: colors.mutedText),
                           ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete_outline, color: colors.icon),
+                            onPressed: () => onDeleteChat(chat.id),
+                          ),
                           onTap: () => onSelectChat(chat.id),
                         );
                       },
                     ),
             ),
+            if (chats.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    onPressed: onDeleteAll,
+                    icon: const Icon(Icons.delete_forever),
+                    label: const Text('Barcha chatlarni o‘chirish'),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

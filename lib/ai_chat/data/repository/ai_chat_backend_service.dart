@@ -139,9 +139,29 @@ class AiChatBackendService {
     }
   }
 
+  Future<void> deleteChat(String chatId) async {
+    final id = chatId.trim();
+    if (id.isEmpty) return;
+    await _delete(_joinUrl(_defaultBaseUrl, '/v1/chats/$id'));
+    if (_chatId == id) _chatId = null;
+  }
+
+  Future<void> deleteAllChats() async {
+    await _delete(_joinUrl(_defaultBaseUrl, '/v1/chats'));
+    _chatId = null;
+  }
+
   Future<Response<Object?>> _get(String url) async {
     try {
       return await _dio.get<Object?>(url, options: Options(headers: _headers));
+    } on DioException catch (error) {
+      throw AiChatBackendException(_formatDioError(error));
+    }
+  }
+
+  Future<Response<Object?>> _delete(String url) async {
+    try {
+      return await _dio.delete<Object?>(url, options: Options(headers: _headers));
     } on DioException catch (error) {
       throw AiChatBackendException(_formatDioError(error));
     }

@@ -113,6 +113,40 @@ abstract class ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  Future<void> deleteChat(String? chatId) async {
+    final id = chatId?.trim();
+    if (id == null || id.isEmpty) return;
+
+    try {
+      await aiChatService.deleteChat(id);
+      if (!mounted) return;
+      if (selectedChatId == id) {
+        setState(() {
+          selectedChatId = null;
+          messages.clear();
+        });
+      }
+      await refreshChatsSilently();
+    } catch (error) {
+      if (mounted) _showSnackBar('Chatni o‘chirishda xatolik: $error');
+    }
+  }
+
+  Future<void> deleteAllChats() async {
+    try {
+      await aiChatService.deleteAllChats();
+      if (!mounted) return;
+      setState(() {
+        selectedChatId = null;
+        messages.clear();
+        chats.clear();
+      });
+    } catch (error) {
+      if (mounted) _showSnackBar('Chatlarni o‘chirishda xatolik: $error');
+    }
+  }
+
+
   Future<void> sendMessage() async {
     if (isSendingMessage) return;
 
