@@ -10,9 +10,6 @@ dependencies:
   flutter:
     sdk: flutter
   dio: ^5.9.0
-  file_picker: ^10.3.7
-  image_picker: ^1.2.2
-  permission_handler: ^12.0.1
   thunder: ^0.2.5
 
 dev_dependencies:

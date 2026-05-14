@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:ai_chat/ai_chat/domain/models/chat_message.dart';
 import 'package:ai_chat/ai_chat/domain/utils/chat_time_formatter.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/chat_colors.dart';
@@ -35,13 +33,7 @@ class UserBubble extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (message.hasImage)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: _BubbleImage(message: message, colors: colors),
-                    ),
                   if (message.hasText) ...[
-                    if (message.hasImage) const SizedBox(height: 6),
                     Text(
                       message.text!,
                       style: TextStyle(
@@ -67,53 +59,6 @@ class UserBubble extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _BubbleImage extends StatelessWidget {
-  const _BubbleImage({required this.message, required this.colors});
-
-  final ChatMessage message;
-  final ChatColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    final imageUrl = message.imageUrl?.trim();
-    if (imageUrl != null && imageUrl.isNotEmpty) {
-      return Image.network(
-        imageUrl,
-        width: 118,
-        height: 118,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return _ImageError(colors: colors);
-        },
-      );
-    }
-
-    return Image.file(
-      File(message.imagePath!),
-      width: 118,
-      height: 118,
-      fit: BoxFit.cover,
-    );
-  }
-}
-
-class _ImageError extends StatelessWidget {
-  const _ImageError({required this.colors});
-
-  final ChatColors colors;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 118,
-      height: 118,
-      color: colors.input,
-      alignment: Alignment.center,
-      child: Icon(Icons.broken_image_outlined, color: colors.mutedText),
     );
   }
 }

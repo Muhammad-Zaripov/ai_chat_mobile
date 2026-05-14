@@ -1,5 +1,4 @@
 import 'package:ai_chat/ai_chat/presentation/widget/chat_colors.dart';
-import 'package:ai_chat/ai_chat/presentation/widget/selected_image_preview.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/send_button.dart';
 import 'package:flutter/material.dart';
 
@@ -9,20 +8,12 @@ class ChatComposer extends StatelessWidget {
     required this.colors,
     required this.controller,
     required this.canSend,
-    required this.isPickingImage,
-    required this.onAttachmentTap,
-    required this.onRemoveImage,
     required this.onSend,
-    this.pickedImage,
   });
 
   final ChatColors colors;
   final TextEditingController controller;
-  final String? pickedImage;
   final bool canSend;
-  final bool isPickingImage;
-  final VoidCallback onAttachmentTap;
-  final VoidCallback onRemoveImage;
   final VoidCallback onSend;
 
   @override
@@ -44,24 +35,8 @@ class ChatComposer extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SelectedImagePreview(
-              imagePath: pickedImage,
-              onRemove: onRemoveImage,
-            ),
             Row(
               children: [
-                GestureDetector(
-                  onTap: isPickingImage ? null : onAttachmentTap,
-                  child: Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: Icon(
-                      Icons.attach_file_rounded,
-                      color: colors.icon,
-                      size: 24,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 Expanded(
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),

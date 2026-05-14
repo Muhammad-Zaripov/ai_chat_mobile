@@ -1,12 +1,11 @@
 import 'dart:io';
-
 import 'package:ai_chat/ai_chat/data/model/create_chat_response.dart';
 import 'package:ai_chat/ai_chat/data/model/send_chat_message_response.dart';
-import 'package:ai_chat/ai_chat/data/repository/chat_upload_service.dart';
+import 'package:ai_chat/core/network/app_dio.dart';
 import 'package:dio/dio.dart';
 
 class AiChatBackendService {
-  AiChatBackendService({Dio? dio}) : _dio = dio ?? ChatUploadService.sharedDio;
+  AiChatBackendService({Dio? dio}) : _dio = dio ?? appDio;
 
   static const String _defaultBaseUrl = String.fromEnvironment(
     'AI_CHAT_BASE_URL',
@@ -21,16 +20,13 @@ class AiChatBackendService {
   final Dio _dio;
   String? _chatId;
 
-  Future<String> sendMessage({
-    required String text,
-    required String? imageUrl,
-  }) async {
+  Future<String> sendMessage({required String text}) async {
     final chatId = _chatId ?? await _createChat();
     _chatId = chatId;
 
     final response = await _post(
       _joinUrl(_defaultBaseUrl, '/v1/chats/$chatId/messages'),
-      data: {'input': _buildInput(text: text, imageUrl: imageUrl)},
+      data: {'input': text.trim().isEmpty ? 'Rasm yuborildi.' : text.trim()},
     );
 
     final json = response.data;
@@ -81,15 +77,6 @@ class AiChatBackendService {
     } on DioException catch (error) {
       throw AiChatBackendException(_formatDioError(error));
     }
-  }
-
-  String _buildInput({required String text, required String? imageUrl}) {
-    final parts = <String>[
-      if (text.trim().isNotEmpty) text.trim(),
-      if (imageUrl != null && imageUrl.trim().isNotEmpty)
-        'User attached image/file URL: ${imageUrl.trim()}',
-    ];
-    return parts.join('\n\n');
   }
 
   String _joinUrl(String baseUrl, String path) {

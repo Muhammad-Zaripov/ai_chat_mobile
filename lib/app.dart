@@ -1,6 +1,6 @@
-import 'package:ai_chat/ai_chat/data/repository/chat_upload_service.dart';
 import 'package:ai_chat/ai_chat/presentation/screen/chat_screen.dart';
 import 'package:ai_chat/core/config/config.dart';
+import 'package:ai_chat/core/network/app_dio.dart';
 import 'package:flutter/material.dart';
 import 'package:thunder/thunder.dart';
 
@@ -42,7 +42,7 @@ class _MangaAIAppState extends State<MangaAIApp> with WidgetsBindingObserver {
       ),
       builder: (context, child) {
         return Thunder(
-          dio: [ChatUploadService.sharedDio],
+          dio: [appDio],
           enabled: AppConfig.thunderEnabled,
           child: child ?? const SizedBox.shrink(),
         );

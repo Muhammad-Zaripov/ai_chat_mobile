@@ -1,5 +1,4 @@
 import 'package:ai_chat/ai_chat/presentation/widget/chat_colors.dart';
-import 'package:ai_chat/ai_chat/presentation/widget/circle_button.dart';
 import 'package:flutter/material.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -17,15 +16,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       backgroundColor: colors.surface,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 16),
-        child: CircleButton(
-          color: colors.iconButton,
-          icon: Icons.menu_rounded,
-          iconColor: colors.icon,
-          onTap: () {},
-        ),
-      ),
+      title: Text('AI CHAT'),
     );
   }
 }
