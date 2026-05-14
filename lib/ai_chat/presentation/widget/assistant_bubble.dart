@@ -3,6 +3,7 @@ import 'package:ai_chat/ai_chat/domain/utils/chat_time_formatter.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/ai_avatar.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/chat_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 class AssistantBubble extends StatelessWidget {
   const AssistantBubble({
@@ -50,12 +51,52 @@ class AssistantBubble extends StatelessWidget {
                       bottomRight: Radius.circular(16),
                     ),
                   ),
-                  child: Text(
-                    message.text ?? '',
-                    style: TextStyle(
-                      color: colors.text,
-                      fontSize: 14,
-                      height: 1.35,
+                  child: MarkdownBody(
+                    data: message.text ?? '',
+                    selectable: true,
+                    styleSheet: MarkdownStyleSheet(
+                      p: TextStyle(
+                        color: colors.text,
+                        fontSize: 14,
+                        height: 1.35,
+                      ),
+                      strong: TextStyle(
+                        color: colors.text,
+                        fontSize: 14,
+                        height: 1.35,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      em: TextStyle(
+                        color: colors.text,
+                        fontSize: 14,
+                        height: 1.35,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      listBullet: TextStyle(
+                        color: colors.text,
+                        fontSize: 14,
+                        height: 1.35,
+                      ),
+                      code: TextStyle(
+                        color: colors.text,
+                        fontSize: 13,
+                        fontFamily: 'monospace',
+                        backgroundColor: colors.input,
+                      ),
+                      codeblockDecoration: BoxDecoration(
+                        color: colors.input,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      blockquote: TextStyle(
+                        color: colors.mutedText,
+                        fontSize: 14,
+                        height: 1.35,
+                      ),
+                      blockquoteDecoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(color: colors.inputBorder, width: 4),
+                        ),
+                      ),
                     ),
                   ),
                 ),
