@@ -1,10 +1,10 @@
 import 'package:ai_chat/ai_chat/presentation/state/chat_screen_state.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/animated_message_bubble.dart';
+import 'package:ai_chat/ai_chat/presentation/widget/assistant_loading_bubble.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/attachment_bottom_sheet.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/chat_app_bar.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/chat_colors.dart';
 import 'package:ai_chat/ai_chat/presentation/widget/chat_composer.dart';
-import 'package:ai_chat/ai_chat/presentation/widget/empty_chat_body.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -29,28 +29,28 @@ class _ChatScreenState extends ChatScreenState {
         appBar: ChatAppBar(colors: colors),
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 260),
-          child: messages.isEmpty
-              ? EmptyChatBody(
-                  key: const ValueKey('empty-chat'),
+          child: ListView.builder(
+            key: const ValueKey('message-list'),
+            controller: scrollController,
+            padding: const EdgeInsets.all(16),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            itemCount: messages.length + (isSendingMessage ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == messages.length) {
+                return AssistantLoadingBubble(
+                  key: const ValueKey('assistant-loading'),
                   colors: colors,
-                  onSuggestionTap: sendSuggestionMessage,
-                )
-              : ListView.builder(
-                  key: const ValueKey('message-list'),
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(16),
-                  keyboardDismissBehavior:
-                      ScrollViewKeyboardDismissBehavior.onDrag,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    return AnimatedMessageBubble(
-                      key: ValueKey(message.id),
-                      message: message,
-                      colors: colors,
-                    );
-                  },
-                ),
+                );
+              }
+
+              final message = messages[index];
+              return AnimatedMessageBubble(
+                key: ValueKey(message.id),
+                message: message,
+                colors: colors,
+              );
+            },
+          ),
         ),
         bottomNavigationBar: AnimatedPadding(
           duration: const Duration(milliseconds: 200),

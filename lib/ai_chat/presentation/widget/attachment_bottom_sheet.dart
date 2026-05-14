@@ -46,13 +46,6 @@ class AttachmentBottomSheet extends StatelessWidget {
               title: 'Camera',
               onTap: onCamera,
             ),
-            const SizedBox(height: 10),
-            _AttachmentTile(
-              colors: colors,
-              icon: Icons.insert_drive_file_rounded,
-              title: 'File',
-              onTap: onFile,
-            ),
           ],
         ),
       ),

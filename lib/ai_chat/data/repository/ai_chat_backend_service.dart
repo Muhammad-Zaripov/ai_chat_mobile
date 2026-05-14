@@ -10,7 +10,10 @@ class AiChatBackendService {
 
   static const String _defaultBaseUrl = String.fromEnvironment(
     'AI_CHAT_BASE_URL',
-    defaultValue: String.fromEnvironment('API_BASE_URL'),
+    defaultValue: String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'https://ai-chat.leetcoders.uz',
+    ),
   );
   static const String _model = String.fromEnvironment('OPENAI_MODEL');
   static const String _authToken = String.fromEnvironment('AI_CHAT_AUTH_TOKEN');
@@ -22,12 +25,6 @@ class AiChatBackendService {
     required String text,
     required String? imageUrl,
   }) async {
-    if (_defaultBaseUrl.trim().isEmpty) {
-      throw const AiChatBackendException(
-        'AI_CHAT_BASE_URL yoki API_BASE_URL berilmagan',
-      );
-    }
-
     final chatId = _chatId ?? await _createChat();
     _chatId = chatId;
 
